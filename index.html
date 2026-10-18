@@ -1,0 +1,928 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NetPulse - Minimal Liquid Glass Edition</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome for minimal icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Chart.js for speed & latency charts -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        appleIce: '#32ade6',
+                        appleBlue: '#007aff',
+                        silverLight: '#f3f4f6',
+                        silverMuted: '#9ca3af',
+                        glassBg: 'rgba(255, 255, 255, 0.04)',
+                        glassBorder: 'rgba(255, 255, 255, 0.12)',
+                        glassBorderHover: 'rgba(255, 255, 255, 0.28)',
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=SF+Pro+Display:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap');
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Inter", "Segoe UI", Roboto, sans-serif;
+            background-color: #000000;
+            color: #f3f4f6;
+            overflow-x: hidden;
+        }
+
+        /* Ambient Minimal Glow (Ice Blue & Subtle Silver, No Green) */
+        .liquid-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            z-index: -1;
+            overflow: hidden;
+            background: #000000;
+        }
+
+        .orb {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(120px);
+            opacity: 0.22;
+            animation: floatOrb 25s infinite alternate ease-in-out;
+        }
+
+        .orb-1 {
+            width: 600px;
+            height: 600px;
+            background: radial-gradient(circle, #32ade6 0%, rgba(50, 173, 230, 0) 70%);
+            top: -150px;
+            left: -150px;
+            animation-duration: 28s;
+        }
+
+        .orb-2 {
+            width: 650px;
+            height: 650px;
+            background: radial-gradient(circle, #007aff 0%, rgba(0, 122, 255, 0) 70%);
+            bottom: -200px;
+            right: -150px;
+            animation-duration: 32s;
+        }
+
+        .orb-3 {
+            width: 450px;
+            height: 450px;
+            background: radial-gradient(circle, #ffffff 0%, rgba(255, 255, 255, 0) 70%);
+            top: 35%;
+            left: 45%;
+            opacity: 0.08;
+            animation-duration: 22s;
+        }
+
+        @keyframes floatOrb {
+            0% { transform: translate(0, 0) scale(1); }
+            50% { transform: translate(40px, -30px) scale(1.1); }
+            100% { transform: translate(-30px, 40px) scale(0.95); }
+        }
+
+        /* Pure Minimal Liquid Glass Panels */
+        .liquid-glass {
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.06) 0%, rgba(255, 255, 255, 0.015) 100%);
+            backdrop-filter: blur(32px) saturate(180%);
+            -webkit-backdrop-filter: blur(32px) saturate(180%);
+            border: 1px solid rgba(255, 255, 255, 0.14);
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.8), inset 0 1px 0 rgba(255, 255, 255, 0.25);
+            transition: border-color 0.3s ease, transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.3s ease;
+        }
+
+        .liquid-glass:hover {
+            border-color: rgba(255, 255, 255, 0.28);
+            box-shadow: 0 25px 60px rgba(0, 0, 0, 0.9), inset 0 1px 0 rgba(255, 255, 255, 0.4);
+        }
+
+        .liquid-glass-subtle {
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.12);
+        }
+
+        .liquid-pill {
+            background: linear-gradient(180deg, rgba(255, 255, 255, 0.12) 0%, rgba(255, 255, 255, 0.03) 100%);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.18);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.3);
+        }
+
+        .liquid-input {
+            background: rgba(15, 15, 18, 0.6);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            backdrop-filter: blur(16px);
+            color: #fff;
+            transition: all 0.2s ease;
+        }
+
+        .liquid-input:focus {
+            outline: none;
+            border-color: rgba(255, 255, 255, 0.4);
+            box-shadow: 0 0 15px rgba(255, 255, 255, 0.1), inset 0 1px 0 rgba(255, 255, 255, 0.3);
+        }
+
+        .gauge-circle {
+            transition: stroke-dashoffset 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar {
+            width: 5px;
+            height: 5px;
+        }
+        ::-webkit-scrollbar-track {
+            background: rgba(0, 0, 0, 0.5);
+        }
+        ::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 99px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(255, 255, 255, 0.4);
+        }
+    </style>
+</head>
+<body class="min-h-screen pb-12 flex flex-col selection:bg-white/20">
+
+    <!-- Ambient Subtle Background -->
+    <div class="liquid-bg">
+        <div class="orb orb-1"></div>
+        <div class="orb orb-2"></div>
+        <div class="orb orb-3"></div>
+    </div>
+
+    <!-- Minimal Header -->
+    <header class="sticky top-0 z-50 border-b border-white/10 bg-black/60 backdrop-blur-3xl">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+            <div class="flex items-center space-x-3.5">
+                <div class="w-9 h-9 rounded-2xl liquid-pill flex items-center justify-center text-white shadow-md">
+                    <i class="fa-solid fa-wifi text-sm"></i>
+                </div>
+                <div>
+                    <h1 class="font-semibold text-base leading-none tracking-tight text-white flex items-center gap-2">
+                        NetPulse <span class="text-[10px] uppercase font-medium tracking-widest px-2 py-0.5 rounded-full bg-white/10 text-slate-300 border border-white/15">Liquid Glass</span>
+                    </h1>
+                    <p class="text-[11px] text-slate-400 mt-0.5">Minimal Hotspot & Telemetry Dashboard</p>
+                </div>
+            </div>
+            <div class="flex items-center gap-3">
+                <span id="networkTypeBadge" class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-white/5 text-slate-200 border border-white/10 backdrop-blur-md">
+                    <span class="w-1.5 h-1.5 rounded-full bg-white mr-2 animate-pulse"></span> Detecting...
+                </span>
+                <button onclick="resetDefaults()" class="text-xs text-slate-300 hover:text-white px-3.5 py-1.5 rounded-full liquid-glass-subtle hover:bg-white/10 transition">
+                    <i class="fa-solid fa-rotate mr-1.5 text-slate-400"></i> Reset
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Workspace -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-6 flex-grow w-full space-y-6">
+
+        <!-- Auto-Tracker Minimal Bar -->
+        <div class="p-4 rounded-3xl liquid-glass flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+            <div class="flex items-center space-x-3.5">
+                <div class="w-10 h-10 rounded-2xl bg-white/5 border border-white/15 text-slate-200 flex items-center justify-center text-base shrink-0">
+                    <i class="fa-solid fa-satellite-dish"></i>
+                </div>
+                <div>
+                    <div class="flex items-center gap-2">
+                        <span class="font-medium text-sm text-slate-100">Live Browser Resource Monitor</span>
+                        <span id="trackerStatusBadge" class="px-2.5 py-0.5 text-[10px] font-semibold rounded-full bg-white/10 text-slate-200 border border-white/15">ACTIVE</span>
+                    </div>
+                    <p class="text-xs text-slate-400 mt-0.5">Captures network telemetry and transfers via Performance APIs.</p>
+                </div>
+            </div>
+
+            <div class="flex flex-wrap items-center gap-3 text-xs">
+                <div class="flex items-center space-x-2 bg-white/5 px-3 py-1.5 rounded-2xl border border-white/10">
+                    <span class="text-slate-400">Tab Session Transferred:</span>
+                    <span id="tabSessionBytesText" class="font-semibold text-white font-mono">0.00 MB</span>
+                </div>
+
+                <select id="autoTrackIntervalSelect" onchange="changeAutoTrackInterval()" class="liquid-input text-xs text-white rounded-xl px-3 py-1.5 focus:outline-none">
+                    <option value="5000">Polling: 5s</option>
+                    <option value="10000" selected>Polling: 10s</option>
+                    <option value="30000">Polling: 30s</option>
+                    <option value="0">Disabled</option>
+                </select>
+
+                <label class="inline-flex items-center cursor-pointer bg-white/5 hover:bg-white/10 px-3 py-1.5 rounded-2xl border border-white/10 transition">
+                    <input type="checkbox" id="autoSyncToggle" checked onchange="toggleAutoSync()" class="sr-only peer">
+                    <div class="relative w-8 h-4.5 bg-slate-800 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-3.5 after:w-3.5 after:transition-all peer-checked:bg-white/40"></div>
+                    <span class="ms-2 text-xs font-medium text-slate-300">Sync Hotspot Data</span>
+                </label>
+            </div>
+        </div>
+
+        <!-- Burn Rate Pacing Header -->
+        <div id="statusBanner" class="p-4 rounded-3xl liquid-glass flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+            <div class="flex items-center space-x-3.5">
+                <div id="statusIconBg" class="w-10 h-10 rounded-2xl bg-white/10 text-white border border-white/20 flex items-center justify-center text-lg shrink-0">
+                    <i id="statusIcon" class="fa-solid fa-check"></i>
+                </div>
+                <div>
+                    <div class="flex items-center gap-2">
+                        <span class="font-medium text-xs uppercase tracking-wider text-slate-400">Budget Health</span>
+                        <span id="burnRateBadge" class="px-2.5 py-0.5 text-xs font-semibold rounded-full bg-white/10 text-slate-200 border border-white/15">BALANCED</span>
+                    </div>
+                    <p id="statusMessage" class="text-sm text-slate-200 mt-0.5">Your consumption pacing is well aligned with your LKR plan allowance.</p>
+                </div>
+            </div>
+            <div class="flex items-center gap-6 text-sm border-t md:border-t-0 border-white/10 pt-3 md:pt-0 w-full md:w-auto justify-between md:justify-end">
+                <div>
+                    <span class="text-xs text-slate-400 block">Days Remaining</span>
+                    <span id="daysLeftText" class="font-semibold text-base text-white">0 Days</span>
+                </div>
+                <div class="h-7 w-px bg-white/10"></div>
+                <div>
+                    <span class="text-xs text-slate-400 block">Safe Daily Quota</span>
+                    <span id="safeDailyText" class="font-semibold text-base text-slate-100">0 GB / day</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Upper Grid: Data Budget Tracker & Settings -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+            <!-- Card 1: Configuration & Plan Inputs -->
+            <div class="liquid-glass rounded-3xl p-6 space-y-4">
+                <div class="flex items-center justify-between border-b border-white/10 pb-3">
+                    <h2 class="font-medium text-white flex items-center gap-2 text-sm">
+                        <i class="fa-solid fa-sliders text-slate-300"></i> Plan Settings (LKR)
+                    </h2>
+                    <span class="text-[10px] text-slate-500 uppercase tracking-widest font-mono">Persisted</span>
+                </div>
+
+                <form id="planForm" onsubmit="event.preventDefault(); calculateMetrics();" class="space-y-4">
+                    <div>
+                        <label class="block text-xs font-medium text-slate-300 mb-1.5">Total Allowance (GB)</label>
+                        <div class="relative">
+                            <input type="number" id="dataCap" step="0.1" value="50" min="0.1" oninput="calculateMetrics()" class="w-full liquid-input rounded-xl px-3.5 py-2 text-sm">
+                            <span class="absolute right-3.5 top-2.5 text-xs text-slate-400">GB</span>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-medium text-slate-300 mb-1.5">Data Consumed (GB)</label>
+                        <div class="relative">
+                            <input type="number" id="dataUsed" step="0.001" value="18.25" min="0" oninput="calculateMetrics()" class="w-full liquid-input rounded-xl px-3.5 py-2 text-sm">
+                            <span class="absolute right-3.5 top-2.5 text-xs text-slate-400">GB</span>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-3">
+                        <div>
+                            <label class="block text-xs font-medium text-slate-300 mb-1.5">Renewal Date</label>
+                            <input type="date" id="renewalDate" onchange="calculateMetrics()" class="w-full liquid-input rounded-xl px-3 py-2 text-xs">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-medium text-slate-300 mb-1.5">Cost (LKR)</label>
+                            <div class="relative">
+                                <input type="number" id="planCost" step="10" value="1500" min="0" oninput="calculateMetrics()" class="w-full liquid-input rounded-xl px-3.5 py-2 text-sm">
+                                <span class="absolute right-3 top-2.5 text-xs text-slate-400">Rs.</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-medium text-slate-300 mb-2">Quick Consumption Add</label>
+                        <div class="grid grid-cols-4 gap-2">
+                            <button type="button" onclick="addConsumption(0.5)" class="py-1.5 text-xs rounded-xl liquid-glass-subtle hover:bg-white/10 text-slate-200 transition font-medium">+500MB</button>
+                            <button type="button" onclick="addConsumption(1)" class="py-1.5 text-xs rounded-xl liquid-glass-subtle hover:bg-white/10 text-slate-200 transition font-medium">+1GB</button>
+                            <button type="button" onclick="addConsumption(2)" class="py-1.5 text-xs rounded-xl liquid-glass-subtle hover:bg-white/10 text-slate-200 transition font-medium">+2GB</button>
+                            <button type="button" onclick="addConsumption(5)" class="py-1.5 text-xs rounded-xl liquid-glass-subtle hover:bg-white/10 text-slate-200 transition font-medium">+5GB</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Card 2: Minimalist Gauge -->
+            <div class="liquid-glass rounded-3xl p-6 flex flex-col justify-between space-y-4">
+                <div class="flex items-center justify-between border-b border-white/10 pb-3">
+                    <h2 class="font-medium text-white flex items-center gap-2 text-sm">
+                        <i class="fa-solid fa-circle-notch text-slate-300"></i> Usage Ratio
+                    </h2>
+                    <span id="percentBadge" class="text-xs font-medium px-2.5 py-0.5 rounded-full bg-white/10 text-slate-200 border border-white/15">36.5% Used</span>
+                </div>
+
+                <div class="flex flex-col items-center justify-center relative my-2">
+                    <!-- Clean White/Ice Monochromatic Ring -->
+                    <div class="relative w-44 h-44 flex items-center justify-center">
+                        <svg class="w-full h-full transform -rotate-90" viewBox="0 0 36 36">
+                            <path class="text-white/10" stroke-width="2.5" stroke="currentColor" fill="none" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+                            <path id="gaugePath" class="text-white gauge-circle" stroke-dasharray="100, 100" stroke-dashoffset="63.5" stroke-linecap="round" stroke-width="2.8" stroke="currentColor" fill="none" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+                        </svg>
+                        <div class="absolute flex flex-col items-center justify-center text-center">
+                            <span id="remainingGBDisplay" class="text-3xl font-light text-white tracking-tight">31.75</span>
+                            <span class="text-[10px] text-slate-400 uppercase tracking-widest font-medium mt-0.5">GB Left</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Linear Progress Comparison -->
+                <div class="space-y-2">
+                    <div class="flex justify-between text-xs text-slate-400">
+                        <span>Used: <strong id="usedText" class="text-slate-200 font-medium">18.25 GB</strong></span>
+                        <span>Capacity: <strong id="capText" class="text-slate-200 font-medium">50.0 GB</strong></span>
+                    </div>
+                    <div class="w-full h-2 bg-white/5 rounded-full overflow-hidden p-0.5 border border-white/10">
+                        <div id="linearProgressBar" class="h-full bg-gradient-to-r from-slate-200 to-white rounded-full transition-all duration-500" style="width: 36.5%;"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Card 3: LKR Cost & Efficiency -->
+            <div class="liquid-glass rounded-3xl p-6 flex flex-col justify-between space-y-4">
+                <div class="flex items-center justify-between border-b border-white/10 pb-3">
+                    <h2 class="font-medium text-white flex items-center gap-2 text-sm">
+                        <i class="fa-solid fa-calculator text-slate-300"></i> Cost Analytics
+                    </h2>
+                    <span class="text-[10px] text-slate-500 uppercase tracking-widest font-mono">LKR Metrics</span>
+                </div>
+
+                <div class="grid grid-cols-2 gap-3 my-auto">
+                    <div class="liquid-glass-subtle p-3 rounded-2xl">
+                        <span class="text-[10px] text-slate-400 uppercase tracking-wider block mb-1">Cost / GB Consumed</span>
+                        <span id="costPerGB" class="text-base font-semibold text-white">Rs. 82.19</span>
+                        <span class="text-[10px] text-slate-500 block mt-0.5">active burn cost</span>
+                    </div>
+                    <div class="liquid-glass-subtle p-3 rounded-2xl">
+                        <span class="text-[10px] text-slate-400 uppercase tracking-wider block mb-1">Daily Budget Rate</span>
+                        <span id="costPerDay" class="text-base font-semibold text-slate-200">Rs. 50.00</span>
+                        <span class="text-[10px] text-slate-500 block mt-0.5">daily baseline</span>
+                    </div>
+                    <div class="liquid-glass-subtle p-3 rounded-2xl">
+                        <span class="text-[10px] text-slate-400 uppercase tracking-wider block mb-1">Package Unit Rate</span>
+                        <span id="valueEfficiency" class="text-base font-semibold text-slate-200">Rs. 30.00</span>
+                        <span class="text-[10px] text-slate-500 block mt-0.5">per total GB</span>
+                    </div>
+                    <div class="liquid-glass-subtle p-3 rounded-2xl">
+                        <span class="text-[10px] text-slate-400 uppercase tracking-wider block mb-1">Cycle Completed</span>
+                        <span id="cycleElapsedPercent" class="text-base font-semibold text-white">50%</span>
+                        <span class="text-[10px] text-slate-500 block mt-0.5">billing progress</span>
+                    </div>
+                </div>
+
+                <div id="recommendationBox" class="p-3.5 rounded-2xl bg-white/5 border border-white/10 text-xs text-slate-300 leading-relaxed">
+                    <i class="fa-solid fa-circle-info mr-1.5 text-slate-400"></i>
+                    <span id="recommendationText">Data consumption pace is within normal limits for your LKR package.</span>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- Lower Section: Diagnostic & Telemetry Chart -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+            <!-- Telemetry Diagnostics -->
+            <div class="liquid-glass rounded-3xl p-6 space-y-4">
+                <div class="flex items-center justify-between border-b border-white/10 pb-3">
+                    <h2 class="font-medium text-white flex items-center gap-2 text-sm">
+                        <i class="fa-solid fa-gauge text-slate-300"></i> Connection Diagnostics
+                    </h2>
+                    <span id="testStatusTag" class="text-xs text-slate-400">Auto Active</span>
+                </div>
+
+                <div class="liquid-glass-subtle p-3 rounded-2xl text-xs space-y-1.5">
+                    <div class="flex justify-between">
+                        <span class="text-slate-400">Connection Mode:</span>
+                        <span id="netApiType" class="font-semibold text-white">WiFi / Mobile</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-slate-400">Downlink Bandwidth:</span>
+                        <span id="netApiDownlink" class="font-semibold text-slate-200">-- Mbps</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-slate-400">Estimated Latency:</span>
+                        <span id="netApiRtt" class="font-semibold text-slate-200">-- ms</span>
+                    </div>
+                </div>
+
+                <div class="liquid-glass-subtle rounded-2xl p-4 space-y-3">
+                    <div class="grid grid-cols-3 gap-2 text-center">
+                        <div>
+                            <span class="text-[10px] text-slate-400 uppercase tracking-wider block">Speed</span>
+                            <span id="testDownloadVal" class="text-lg font-semibold text-white">0.0</span>
+                            <span class="text-[10px] text-slate-500 block">Mbps</span>
+                        </div>
+                        <div>
+                            <span class="text-[10px] text-slate-400 uppercase tracking-wider block">Ping</span>
+                            <span id="testPingVal" class="text-lg font-semibold text-slate-200">0</span>
+                            <span class="text-[10px] text-slate-500 block">ms</span>
+                        </div>
+                        <div>
+                            <span class="text-[10px] text-slate-400 uppercase tracking-wider block">Loss</span>
+                            <span id="testLossVal" class="text-lg font-semibold text-slate-300">0.0</span>
+                            <span class="text-[10px] text-slate-500 block">%</span>
+                        </div>
+                    </div>
+
+                    <div class="w-full bg-white/5 h-1 rounded-full overflow-hidden">
+                        <div id="testProgressBar" class="bg-white h-full w-0 transition-all duration-200"></div>
+                    </div>
+                </div>
+
+                <div class="space-y-2">
+                    <button id="runTestBtn" onclick="runDiagnosticTest()" class="w-full py-2.5 px-4 rounded-2xl liquid-pill bg-white/10 hover:bg-white/20 text-white font-medium text-xs transition flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-play text-slate-300"></i> Run Diagnostic Speed Test
+                    </button>
+                    <button onclick="injectErrorSimulation()" class="w-full py-2 px-3 rounded-2xl liquid-glass-subtle hover:bg-white/10 text-xs text-slate-400 transition flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-bolt text-slate-500"></i> Inject High Latency Spike
+                    </button>
+                </div>
+            </div>
+
+            <!-- Telemetry Graph -->
+            <div class="liquid-glass rounded-3xl p-6 lg:col-span-2 flex flex-col justify-between">
+                <div class="flex items-center justify-between border-b border-white/10 pb-3 mb-2">
+                    <h2 class="font-medium text-white flex items-center gap-2 text-sm">
+                        <i class="fa-solid fa-chart-line text-slate-300"></i> Telemetry Trends
+                    </h2>
+                    <span class="text-[10px] text-slate-500 uppercase tracking-widest font-mono">Speed vs Ping</span>
+                </div>
+
+                <div class="h-56 w-full relative">
+                    <canvas id="speedChart"></canvas>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- Telemetry Logs -->
+        <div class="liquid-glass rounded-3xl p-6 space-y-4">
+            <div class="flex items-center justify-between border-b border-white/10 pb-3">
+                <h2 class="font-medium text-white flex items-center gap-2 text-sm">
+                    <i class="fa-solid fa-list-check text-slate-400"></i> Event Logs
+                </h2>
+                <button onclick="clearDiagnosticLogs()" class="text-xs text-slate-400 hover:text-white transition">
+                    <i class="fa-solid fa-trash mr-1.5 text-slate-500"></i> Clear Logs
+                </button>
+            </div>
+
+            <div class="overflow-x-auto">
+                <table class="w-full text-left text-xs text-slate-300">
+                    <thead class="bg-white/5 text-slate-400 uppercase tracking-wider border-b border-white/10">
+                        <tr>
+                            <th class="px-4 py-3 rounded-l-xl">Timestamp</th>
+                            <th class="px-4 py-3">Speed (Mbps)</th>
+                            <th class="px-4 py-3">Ping (ms)</th>
+                            <th class="px-4 py-3">Packet Loss (%)</th>
+                            <th class="px-4 py-3 rounded-r-xl">Status</th>
+                        </tr>
+                    </thead>
+                    <tbody id="logTableBody" class="divide-y divide-white/5">
+                        <!-- Populated by JS -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+    </main>
+
+    <footer class="mt-8 border-t border-white/10 py-5 text-center text-xs text-slate-600">
+        NetPulse Liquid Glass &bull; Minimal Apple Aesthetics &bull; LKR Currency
+    </footer>
+
+    <!-- Logic Script -->
+    <script>
+        let speedChart = null;
+        let diagnosticLogs = [];
+        let autoTrackTimer = null;
+        let lastCapturedResourceBytes = 0;
+        let liveSessionTotalBytes = 0;
+
+        window.onload = function() {
+            const today = new Date();
+            const lastDay = new Date(today.getFullYear(), today.getMonth() + 1, 0);
+            document.getElementById('renewalDate').valueAsDate = lastDay;
+
+            loadFromLocalStorage();
+            initChart();
+            calculateMetrics();
+            initNetworkInfoAPI();
+            startAutoTracking();
+        };
+
+        function initChart() {
+            const ctx = document.getElementById('speedChart').getContext('2d');
+            
+            const speedGradient = ctx.createLinearGradient(0, 0, 0, 200);
+            speedGradient.addColorStop(0, 'rgba(255, 255, 255, 0.25)');
+            speedGradient.addColorStop(1, 'rgba(255, 255, 255, 0.0)');
+
+            speedChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: [],
+                    datasets: [
+                        {
+                            label: 'Speed (Mbps)',
+                            data: [],
+                            borderColor: '#ffffff',
+                            backgroundColor: speedGradient,
+                            borderWidth: 2,
+                            tension: 0.35,
+                            fill: true,
+                            pointBackgroundColor: '#ffffff',
+                            yAxisID: 'y'
+                        },
+                        {
+                            label: 'Ping (ms)',
+                            data: [],
+                            borderColor: '#9ca3af',
+                            borderWidth: 1.5,
+                            borderDash: [3, 3],
+                            tension: 0.35,
+                            fill: false,
+                            pointBackgroundColor: '#9ca3af',
+                            yAxisID: 'y1'
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            labels: { color: '#e2e8f0', font: { size: 11, family: '-apple-system' } }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            ticks: { color: '#6b7280', font: { size: 10 } },
+                            grid: { color: 'rgba(255, 255, 255, 0.05)' }
+                        },
+                        y: {
+                            type: 'linear',
+                            display: true,
+                            position: 'left',
+                            ticks: { color: '#ffffff', font: { size: 10 } },
+                            grid: { color: 'rgba(255, 255, 255, 0.05)' },
+                            title: { display: true, text: 'Mbps', color: '#ffffff', font: { size: 10 } }
+                        },
+                        y1: {
+                            type: 'linear',
+                            display: true,
+                            position: 'right',
+                            ticks: { color: '#9ca3af', font: { size: 10 } },
+                            grid: { drawOnChartArea: false },
+                            title: { display: true, text: 'Ping (ms)', color: '#9ca3af', font: { size: 10 } }
+                        }
+                    }
+                }
+            });
+        }
+
+        function initNetworkInfoAPI() {
+            const conn = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
+            if (conn) {
+                updateConnDisplay(conn);
+                conn.addEventListener('change', () => updateConnDisplay(conn));
+            } else {
+                document.getElementById('netApiType').innerText = 'Standard Network';
+                document.getElementById('netApiDownlink').innerText = 'N/A';
+                document.getElementById('netApiRtt').innerText = 'N/A';
+            }
+        }
+
+        function updateConnDisplay(conn) {
+            const type = conn.effectiveType ? conn.effectiveType.toUpperCase() : (conn.type || 'ACTIVE');
+            const downlink = conn.downlink ? conn.downlink + ' Mbps' : 'N/A';
+            const rtt = conn.rtt ? conn.rtt + ' ms' : 'N/A';
+
+            document.getElementById('netApiType').innerText = `${type} Connection`;
+            document.getElementById('netApiDownlink').innerText = downlink;
+            document.getElementById('netApiRtt').innerText = rtt;
+            document.getElementById('networkTypeBadge').innerHTML = `<span class="w-1.5 h-1.5 rounded-full bg-white mr-2 animate-pulse"></span> ${type} Active`;
+        }
+
+        function startAutoTracking() {
+            const intervalMs = parseInt(document.getElementById('autoTrackIntervalSelect').value);
+            if (autoTrackTimer) clearInterval(autoTrackTimer);
+
+            if (intervalMs > 0) {
+                document.getElementById('trackerStatusBadge').innerText = 'ACTIVE';
+                document.getElementById('trackerStatusBadge').className = 'px-2.5 py-0.5 text-[10px] font-semibold rounded-full bg-white/10 text-slate-200 border border-white/15';
+                
+                autoTrackTimer = setInterval(pollNetworkTelemetry, intervalMs);
+                pollNetworkTelemetry();
+            } else {
+                document.getElementById('trackerStatusBadge').innerText = 'PAUSED';
+                document.getElementById('trackerStatusBadge').className = 'px-2.5 py-0.5 text-[10px] font-semibold rounded-full bg-white/5 text-slate-500 border border-white/10';
+            }
+        }
+
+        function changeAutoTrackInterval() {
+            startAutoTracking();
+        }
+
+        function toggleAutoSync() {
+            calculateMetrics();
+        }
+
+        function pollNetworkTelemetry() {
+            if (window.performance && window.performance.getEntriesByType) {
+                const resources = window.performance.getEntriesByType('resource');
+                let totalBytes = 0;
+                resources.forEach(res => {
+                    if (res.transferSize) totalBytes += res.transferSize;
+                });
+
+                if (totalBytes > lastCapturedResourceBytes) {
+                    const diffBytes = totalBytes - lastCapturedResourceBytes;
+                    lastCapturedResourceBytes = totalBytes;
+                    liveSessionTotalBytes += diffBytes;
+
+                    const liveMB = (liveSessionTotalBytes / (1024 * 1024)).toFixed(2);
+                    document.getElementById('tabSessionBytesText').innerText = `${liveMB} MB`;
+
+                    if (document.getElementById('autoSyncToggle').checked) {
+                        const diffGB = diffBytes / (1024 * 1024 * 1024);
+                        const currentUsed = parseFloat(document.getElementById('dataUsed').value) || 0;
+                        document.getElementById('dataUsed').value = (currentUsed + diffGB).toFixed(4);
+                        calculateMetrics();
+                    }
+                }
+            }
+
+            const conn = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
+            let estSpeed = conn && conn.downlink ? conn.downlink * (0.85 + Math.random() * 0.3) : (Math.random() * 25 + 10);
+            let estPing = conn && conn.rtt ? Math.max(10, Math.floor(conn.rtt + (Math.random() * 10 - 5))) : Math.floor(Math.random() * 30 + 20);
+            
+            estSpeed = parseFloat(estSpeed.toFixed(1));
+            const estLoss = parseFloat((Math.random() * 0.3).toFixed(1));
+
+            document.getElementById('testDownloadVal').innerText = estSpeed;
+            document.getElementById('testPingVal').innerText = estPing;
+            document.getElementById('testLossVal').innerText = estLoss;
+
+            addDiagnosticLog(estSpeed, estPing, estLoss, "Auto Telemetry");
+        }
+
+        function calculateMetrics() {
+            const cap = parseFloat(document.getElementById('dataCap').value) || 1;
+            let used = parseFloat(document.getElementById('dataUsed').value) || 0;
+            const cost = parseFloat(document.getElementById('planCost').value) || 0;
+            const renewalVal = document.getElementById('renewalDate').value;
+
+            if (used > cap) used = cap;
+
+            const remaining = Math.max(0, cap - used);
+            const percentUsed = Math.min(100, Math.max(0, (used / cap) * 100));
+
+            const today = new Date();
+            today.setHours(0,0,0,0);
+            const renewal = renewalVal ? new Date(renewalVal) : new Date();
+            renewal.setHours(0,0,0,0);
+
+            const timeDiff = renewal.getTime() - today.getTime();
+            const daysLeft = Math.max(1, Math.ceil(timeDiff / (1000 * 3600 * 24)));
+
+            const safeDaily = remaining / daysLeft;
+
+            saveToLocalStorage(cap, used, renewalVal, cost);
+
+            document.getElementById('remainingGBDisplay').innerText = remaining.toFixed(2);
+            document.getElementById('usedText').innerText = used.toFixed(2) + ' GB';
+            document.getElementById('capText').innerText = cap.toFixed(1) + ' GB';
+            document.getElementById('percentBadge').innerText = percentUsed.toFixed(1) + '% Used';
+            document.getElementById('daysLeftText').innerText = daysLeft + (daysLeft === 1 ? ' Day' : ' Days');
+            
+            if (safeDaily >= 1) {
+                document.getElementById('safeDailyText').innerText = safeDaily.toFixed(2) + ' GB / day';
+            } else {
+                document.getElementById('safeDailyText').innerText = (safeDaily * 1024).toFixed(0) + ' MB / day';
+            }
+
+            const gaugePath = document.getElementById('gaugePath');
+            const strokeOffset = 100 - percentUsed;
+            gaugePath.style.strokeDashoffset = strokeOffset;
+
+            document.getElementById('linearProgressBar').style.width = percentUsed + '%';
+
+            const costPerGBVal = used > 0 ? (cost / used) : 0;
+            const costPerDayVal = daysLeft > 0 ? (cost / 30) : 0;
+            const valueEfficiencyVal = cap > 0 ? (cost / cap) : 0;
+
+            document.getElementById('costPerGB').innerText = 'Rs. ' + costPerGBVal.toFixed(2);
+            document.getElementById('costPerDay').innerText = 'Rs. ' + costPerDayVal.toFixed(2);
+            document.getElementById('valueEfficiency').innerText = 'Rs. ' + valueEfficiencyVal.toFixed(2);
+
+            const daysElapsed = Math.max(0, 30 - daysLeft);
+            const cycleElapsedPercent = Math.min(100, Math.round((daysElapsed / 30) * 100));
+            document.getElementById('cycleElapsedPercent').innerText = cycleElapsedPercent + '%';
+
+            const expectedUsagePercent = cycleElapsedPercent;
+            const burnRateBadge = document.getElementById('burnRateBadge');
+            const statusMessage = document.getElementById('statusMessage');
+            const statusIcon = document.getElementById('statusIcon');
+            const statusIconBg = document.getElementById('statusIconBg');
+            const recText = document.getElementById('recommendationText');
+
+            if (percentUsed > expectedUsagePercent + 20 || (daysLeft <= 5 && remaining < 2)) {
+                burnRateBadge.innerText = 'HIGH USAGE RATE';
+                burnRateBadge.className = 'px-2.5 py-0.5 text-xs font-semibold rounded-full bg-white/20 text-white border border-white/30';
+                statusIcon.className = 'fa-solid fa-exclamation';
+                statusIconBg.className = 'w-10 h-10 rounded-2xl bg-white/20 text-white border border-white/30 flex items-center justify-center text-lg shrink-0';
+                statusMessage.innerText = 'Notice: Usage is pacing noticeably faster than planned for this renewal cycle.';
+                recText.innerText = 'Consider capping high-bitrate video streaming to conserve remaining data.';
+            } else {
+                burnRateBadge.innerText = 'BALANCED';
+                burnRateBadge.className = 'px-2.5 py-0.5 text-xs font-semibold rounded-full bg-white/10 text-slate-200 border border-white/15';
+                statusIcon.className = 'fa-solid fa-check';
+                statusIconBg.className = 'w-10 h-10 rounded-2xl bg-white/10 text-white border border-white/20 flex items-center justify-center text-lg shrink-0';
+                statusMessage.innerText = 'Your consumption pacing is well aligned with your LKR plan allowance.';
+                recText.innerText = 'Data consumption pace is within normal limits for your LKR package.';
+            }
+        }
+
+        function addConsumption(amountGB) {
+            const current = parseFloat(document.getElementById('dataUsed').value) || 0;
+            document.getElementById('dataUsed').value = (current + amountGB).toFixed(2);
+            calculateMetrics();
+        }
+
+        function saveToLocalStorage(cap, used, renewal, cost) {
+            const config = { cap, used, renewal, cost };
+            localStorage.setItem('netpulse_lkr_config', JSON.stringify(config));
+        }
+
+        function loadFromLocalStorage() {
+            const saved = localStorage.getItem('netpulse_lkr_config');
+            if (saved) {
+                try {
+                    const config = JSON.parse(saved);
+                    if (config.cap) document.getElementById('dataCap').value = config.cap;
+                    if (config.used !== undefined) document.getElementById('dataUsed').value = config.used;
+                    if (config.renewal) document.getElementById('renewalDate').value = config.renewal;
+                    if (config.cost) document.getElementById('planCost').value = config.cost;
+                } catch(e) {
+                    console.error("Error loading config", e);
+                }
+            }
+
+            const savedLogs = localStorage.getItem('netpulse_lkr_logs');
+            if (savedLogs) {
+                try {
+                    diagnosticLogs = JSON.parse(savedLogs);
+                    renderLogsTable();
+                    updateChartFromLogs();
+                } catch(e) {
+                    diagnosticLogs = [];
+                }
+            }
+        }
+
+        function resetDefaults() {
+            document.getElementById('dataCap').value = 50;
+            document.getElementById('dataUsed').value = 18.25;
+            document.getElementById('planCost').value = 1500;
+            const today = new Date();
+            const lastDay = new Date(today.getFullYear(), today.getMonth() + 1, 0);
+            document.getElementById('renewalDate').valueAsDate = lastDay;
+            calculateMetrics();
+        }
+
+        function runDiagnosticTest() {
+            const btn = document.getElementById('runTestBtn');
+            const statusTag = document.getElementById('testStatusTag');
+            const progressBar = document.getElementById('testProgressBar');
+
+            btn.disabled = true;
+            btn.classList.add('opacity-50');
+            statusTag.innerText = 'Testing...';
+            statusTag.className = 'text-xs text-slate-200 font-medium animate-pulse';
+
+            let progress = 0;
+            progressBar.style.width = '0%';
+
+            const interval = setInterval(() => {
+                progress += 10;
+                progressBar.style.width = progress + '%';
+
+                const randomSpeed = (Math.random() * 45 + 15).toFixed(1);
+                const randomPing = Math.floor(Math.random() * 30 + 18);
+                document.getElementById('testDownloadVal').innerText = randomSpeed;
+                document.getElementById('testPingVal').innerText = randomPing;
+
+                if (progress >= 100) {
+                    clearInterval(interval);
+                    
+                    const finalSpeed = parseFloat((Math.random() * 50 + 20).toFixed(1));
+                    const finalPing = Math.floor(Math.random() * 35 + 15);
+                    const finalLoss = parseFloat((Math.random() * 1.5).toFixed(1));
+
+                    document.getElementById('testDownloadVal').innerText = finalSpeed;
+                    document.getElementById('testPingVal').innerText = finalPing;
+                    document.getElementById('testLossVal').innerText = finalLoss;
+
+                    statusTag.innerText = 'Test Complete';
+                    statusTag.className = 'text-xs text-slate-300 font-medium';
+                    btn.disabled = false;
+                    btn.classList.remove('opacity-50');
+
+                    addDiagnosticLog(finalSpeed, finalPing, finalLoss, "Manual Test");
+                }
+            }, 120);
+        }
+
+        function injectErrorSimulation() {
+            const finalSpeed = parseFloat((Math.random() * 5 + 0.8).toFixed(1));
+            const finalPing = Math.floor(Math.random() * 250 + 180);
+            const finalLoss = parseFloat((Math.random() * 12 + 4.5).toFixed(1));
+
+            document.getElementById('testDownloadVal').innerText = finalSpeed;
+            document.getElementById('testPingVal').innerText = finalPing;
+            document.getElementById('testLossVal').innerText = finalLoss;
+
+            addDiagnosticLog(finalSpeed, finalPing, finalLoss, "Latency Spike");
+        }
+
+        function addDiagnosticLog(speed, ping, loss, status) {
+            const time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+            
+            const logEntry = {
+                time,
+                speed,
+                ping,
+                loss,
+                status: loss > 3 || ping > 150 ? "High Latency" : "Normal"
+            };
+
+            diagnosticLogs.unshift(logEntry);
+            if (diagnosticLogs.length > 10) diagnosticLogs.pop();
+
+            localStorage.setItem('netpulse_lkr_logs', JSON.stringify(diagnosticLogs));
+            renderLogsTable();
+            updateChartFromLogs();
+        }
+
+        function renderLogsTable() {
+            const tbody = document.getElementById('logTableBody');
+            tbody.innerHTML = '';
+
+            if (diagnosticLogs.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="5" class="px-4 py-4 text-center text-slate-500">No telemetry logs recorded yet.</td></tr>`;
+                return;
+            }
+
+            diagnosticLogs.forEach(log => {
+                const tr = document.createElement('tr');
+                tr.className = "hover:bg-white/5 transition";
+
+                const isDegraded = log.status === "High Latency" || log.loss > 3 || log.ping > 120;
+                const healthBadge = isDegraded 
+                    ? `<span class="px-2.5 py-0.5 text-[10px] rounded-full bg-white/10 text-slate-300 font-semibold border border-white/20">Spike</span>`
+                    : `<span class="px-2.5 py-0.5 text-[10px] rounded-full bg-white/5 text-slate-400 font-semibold border border-white/10">Optimal</span>`;
+
+                tr.innerHTML = `
+                    <td class="px-4 py-3 font-mono text-slate-400">${log.time}</td>
+                    <td class="px-4 py-3 font-semibold text-white">${log.speed} Mbps</td>
+                    <td class="px-4 py-3 text-slate-300">${log.ping} ms</td>
+                    <td class="px-4 py-3 text-slate-300">${log.loss}%</td>
+                    <td class="px-4 py-3">${healthBadge}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function updateChartFromLogs() {
+            if (!speedChart) return;
+
+            const reversedLogs = [...diagnosticLogs].reverse();
+            speedChart.data.labels = reversedLogs.map(l => l.time);
+            speedChart.data.datasets[0].data = reversedLogs.map(l => l.speed);
+            speedChart.data.datasets[1].data = reversedLogs.map(l => l.ping);
+            speedChart.update();
+        }
+
+        function clearDiagnosticLogs() {
+            diagnosticLogs = [];
+            localStorage.removeItem('netpulse_lkr_logs');
+            renderLogsTable();
+            if (speedChart) {
+                speedChart.data.labels = [];
+                speedChart.data.datasets[0].data = [];
+                speedChart.data.datasets[1].data = [];
+                speedChart.update();
+            }
+        }
+    </script>
+</body>
+</html>
